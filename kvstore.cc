@@ -3,7 +3,7 @@
 
 KVStore::KVStore(const std::string &dir): KVStoreAPI(dir)
 {
-	std::string library="testing gpg key";
+	std::string library="testing gpg key second time";
 }
 
 KVStore::~KVStore()
