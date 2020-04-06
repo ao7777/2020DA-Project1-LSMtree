@@ -1,9 +1,9 @@
 #include "kvstore.h"
 #include <string>
-
+#include "skiplist.h"
 KVStore::KVStore(const std::string &dir): KVStoreAPI(dir)
 {
-	std::string library="testing gpg key third time";
+	
 }
 
 KVStore::~KVStore()
