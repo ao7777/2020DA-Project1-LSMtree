@@ -7,9 +7,7 @@
             "args": [
                 "-g",
                 "${file}",
-                "${fileDirname}\\skiplist.cc",
                 "${fileDirname}\\skiplist.h",
-                "${fileDirname}\\test.h",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
