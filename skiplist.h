@@ -124,14 +124,14 @@ std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_
 template <class key_t, class value_t>
 std::shared_ptr<value_t> skiplist<key_t, value_t>::get(key_t key)
 {
-    auto p=search(key);
+    auto &&p=search(key);
     return (p->entry.key==key)?std::make_shared<value_t>(p->entry.value):nullptr;
 }
 template <class key_t, class value_t>
 bool skiplist<key_t, value_t>::remove(key_t key)
 {
     if(isEmpty())return false;
-    auto p=search(key);
+    auto &&p=search(key);
     if(p->entry.key!=key)return false;
     do{
         std::shared_ptr<qNode> tmp=p->below;
@@ -152,7 +152,7 @@ std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_
 {
     //search from the first level
     auto topList = levelTop;
-    auto p = topList->first();
+    auto &&p = topList->first();
     while (1)
     {
         while (p->next && (p->entry.key <= key))

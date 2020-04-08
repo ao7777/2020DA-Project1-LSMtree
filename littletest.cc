@@ -1,6 +1,7 @@
 #include<iostream>
 #include"skiplist.h"
 #include "random"
+#include <chrono>
 #define MAX_SIZE 10000
 int testlib[MAX_SIZE];
 using namespace std;
@@ -26,7 +27,12 @@ int main(){
         auto value=(rd())%(2*MAX_SIZE);
         testlib[i]=value;
     }
+    auto start = chrono::steady_clock::now();
     testInsert(&list);
-    cout<<testRemove(&list);
+    testRemove(&list);
+    auto stop = chrono::steady_clock::now();
+    auto duration=stop-start;
+    cout<<chrono::duration<double, milli>(duration).count()
+             << "ms ";
     return 0;
 }
