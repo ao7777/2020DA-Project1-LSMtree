@@ -1,13 +1,14 @@
 #include "kvstore.h"
 #include <string>
 #include "skiplist.h"
-KVStore::KVStore(const std::string &dir): KVStoreAPI(dir)
+KVStore::KVStore(const std::string &dir): KVStoreAPI(dir),dirc(dir)
 {
 	
 }
 
 KVStore::~KVStore()
 {
+	
 }
 
 /**
@@ -16,6 +17,7 @@ KVStore::~KVStore()
  */
 void KVStore::put(uint64_t key, const std::string &s)
 {
+	memtable.insert(key,s);
 }
 /**
  * Returns the (string) value of the given key.
@@ -23,7 +25,8 @@ void KVStore::put(uint64_t key, const std::string &s)
  */
 std::string KVStore::get(uint64_t key)
 {
-	return "";
+	auto s=memtable.get(key);
+	return s?*s:"";
 }
 /**
  * Delete the given key-value pair if it exists.
@@ -31,6 +34,7 @@ std::string KVStore::get(uint64_t key)
  */
 bool KVStore::del(uint64_t key)
 {
+	return memtable.remove(key);
 	return false;
 }
 
@@ -40,4 +44,5 @@ bool KVStore::del(uint64_t key)
  */
 void KVStore::reset()
 {
+	memtable.~skiplist();
 }

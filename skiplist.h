@@ -1,5 +1,8 @@
 // this class is for storage in memory 
+#pragma once
 #include "random"
+#include<memory>
+
 template<class key_t,class value_t>class skiplist{
 public:
     skiplist();
@@ -7,8 +10,8 @@ public:
     int getSize();
     int getLevel();
     bool isEmpty();
-    void insert(key_t,value_t);
-    value_t* get(key_t);
+    void insert(key_t,value_t); 
+    std::shared_ptr<value_t> get(key_t);
     bool remove(key_t);
 private:
     struct dataPair{
@@ -18,58 +21,49 @@ private:
         dataPair(){};
     };
     struct qNode{//built-in quadListNode 
-        qNode *above,*below,*next,*prev;
+        std::shared_ptr<qNode> above,below,next,prev;
         dataPair entry;
         qNode(){};
-        qNode(qNode *a,qNode *b,qNode *n,qNode *p,dataPair e):above(a),below(b),next(n),prev(p),entry(e){};
+        qNode(std::shared_ptr<qNode> a,
+        std::shared_ptr<qNode>b,
+        std::shared_ptr<qNode>n,
+        std::shared_ptr<qNode>p,
+        dataPair e):above(a),below(b),next(n),prev(p),entry(e){};
     };
     struct qList{
-        qNode *head,*tail;
-        qList *below,*above;
+        std::shared_ptr<qNode> head,tail;
+        std::shared_ptr<qList> below,above;
         int length;
         qList(){
-            head=new qNode;
-        head->next=tail=new qNode;
+        head=std::make_shared<qNode>();
+        head->next=tail=std::make_shared<qNode>();
         tail->prev=head;
         head->prev=tail->next=nullptr;
         };
         ~qList(){
-            auto p=head->next;
-            while(p!=tail){
-                p=p->next;
-                delete p->prev;
-            }
-            delete head;
-            delete tail;
         };
         bool isEmpty(){return head->next==tail;}
-        qNode *first(){return head->next;}
-        qNode *last(){return tail->prev;}
-        bool isValid(qNode *p){return p&&(p!=head)&&(p!=tail);}
+        std::shared_ptr<qNode>first(){return head->next;}
+        std::shared_ptr<qNode>last(){return tail->prev;}
+        bool isValid(std::shared_ptr<qNode> p){return p&&(p!=head)&&(p!=tail);}
     };
-    qList *levelTop,*levelBottom;//stores the list pointing to the first node of each level
-    qNode* search(key_t);
-    qNode* insertAbove(dataPair,qNode *,qNode *b=nullptr);
+   std::shared_ptr<qList> levelTop,levelBottom;//stores the list pointing to the first node of each level
+   std::shared_ptr<qNode> search(key_t);
+   std::shared_ptr<qNode> insertAbove(dataPair,std::shared_ptr<qNode>,std::shared_ptr<qNode> b=nullptr);
     int size,level;
 };
 template <class key_t, class value_t>
 skiplist<key_t, value_t>::skiplist()
 {
     size = level = 0;
-    levelTop = new qList;
-    levelTop->below=levelBottom=new qList;
+    levelTop = std::make_shared<qList>();
+    levelTop->below=levelBottom=std::make_shared<qList>();
     levelBottom->below=levelTop->above = nullptr;
     levelBottom->above=levelTop;
 };
 template <class key_t, class value_t>
 skiplist<key_t, value_t>::~skiplist()
 {
-    qList* tmp=levelTop;
-    while(tmp->below){
-        tmp=tmp->below;
-        delete tmp->above;
-    }
-    delete tmp;
 }
 template <class key_t, class value_t>
 bool skiplist<key_t, value_t>::isEmpty()
@@ -90,7 +84,7 @@ template <class key_t, class value_t>
 void skiplist<key_t, value_t>::insert(key_t key, value_t value)
 {
     dataPair e = dataPair(key, value);
-    qNode *p, *b;
+    std::shared_ptr<qNode> p, b;
     p = search(key);
     if (p->entry.key == key)
         while (p->below)
@@ -105,10 +99,10 @@ void skiplist<key_t, value_t>::insert(key_t key, value_t value)
             p = p->prev;
             if(!level->isValid(p)){
                 if(level==levelTop){
-                    levelTop->above=new qList;
+                    levelTop->above=std::make_shared<qList>();;
                     levelTop->above->below=levelTop;
                     levelTop=levelTop->above;
-                    level++;
+                    this->level++;
                 }
                 p=level->above->head;
             }
@@ -118,20 +112,20 @@ void skiplist<key_t, value_t>::insert(key_t key, value_t value)
     }
 }
 template <class key_t, class value_t>
-typename skiplist<key_t, value_t>::qNode *skiplist<key_t, value_t>::insertAbove(skiplist<key_t, value_t>::dataPair e, qNode *p, qNode *b)
+std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_t>::insertAbove(skiplist<key_t, value_t>::dataPair e, std::shared_ptr<skiplist<key_t, value_t>::qNode>p, std::shared_ptr<skiplist<key_t, value_t>::qNode>b)
 {
     //insert a node before p
-    qNode *x = new qNode(nullptr, b, p->next, p, e);
+    std::shared_ptr<qNode> x = std::shared_ptr<qNode>(new qNode(nullptr, b, p->next, p, e));
     p->next->prev=x;
     p->next=x;
     if(b)b->above=x;
     return x;
 }
 template <class key_t, class value_t>
-value_t *skiplist<key_t, value_t>::get(key_t key)
+std::shared_ptr<value_t> skiplist<key_t, value_t>::get(key_t key)
 {
     auto p=search(key);
-    return (p->entry.key==key)?&p->entry.value:nullptr;
+    return (p->entry.key==key)?std::make_shared<value_t>(p->entry.value):nullptr;
 }
 template <class key_t, class value_t>
 bool skiplist<key_t, value_t>::remove(key_t key)
@@ -140,27 +134,25 @@ bool skiplist<key_t, value_t>::remove(key_t key)
     auto p=search(key);
     if(p->entry.key!=key)return false;
     do{
-        qNode *tmp=p->below;
+        std::shared_ptr<qNode> tmp=p->below;
         p->prev->next=p->next;
         p->next->prev=p->prev;
-        delete p;
         p=tmp;
     }while(p);
     while(!isEmpty()&&levelTop->isEmpty()){
         if(levelTop==levelBottom)break;
         auto tmp=levelTop->below;
-        delete levelTop;
         levelTop=tmp;
     }
     size--;
     return true;
 }
 template <class key_t, class value_t>
-typename skiplist<key_t, value_t>::qNode *skiplist<key_t, value_t>::search(key_t key)
+std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_t>::search(key_t key)
 {
     //search from the first level
     auto topList = levelTop;
-    qNode *p = topList->first();
+    auto p = topList->first();
     while (1)
     {
         while (p->next && (p->entry.key <= key))

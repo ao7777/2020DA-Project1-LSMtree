@@ -1,7 +1,7 @@
 #include<iostream>
 #include"skiplist.h"
 #include "random"
-#define MAX_SIZE 50000
+#define MAX_SIZE 10000
 int testlib[MAX_SIZE];
 using namespace std;
 bool testInsert(skiplist<int,int> *List){

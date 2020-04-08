@@ -1,11 +1,12 @@
 #pragma once
-
+#include"skiplist.h"
 #include "kvstore_api.h"
 
 class KVStore : public KVStoreAPI {
 	// You can add your implementation here
 private:
-
+	std::string dirc;
+	skiplist<uint64_t,std::string> memtable;
 public:
 	KVStore(const std::string &dir);
 
