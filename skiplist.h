@@ -84,13 +84,12 @@ template <class key_t, class value_t>
 void skiplist<key_t, value_t>::insert(key_t key, value_t value)
 {
     dataPair e = dataPair(key, value);
-    std::shared_ptr<qNode> p, b;
-    p = search(key);
+    auto &&p = search(key);
     if (p->entry.key == key)
         while (p->below)
             p = p->below;
     size++;
-    b = insertAbove(e, p);
+    auto &&b = insertAbove(e, p);
     std::random_device rd;
     auto level=levelBottom;
     while (rd() & 1)
