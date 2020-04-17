@@ -40,7 +40,12 @@
         "xmemory0": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "fstream": "cpp",
+        "ratio": "cpp",
+        "deque": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
     
 }

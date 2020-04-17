@@ -2,33 +2,39 @@
 #pragma once
 #include "random"
 #include<memory>
-
+template<class key_t,class value_t>struct dataPair{
+    value_t value;
+    key_t key;
+    dataPair(key_t k,value_t &v,int):value(v),key(k){};
+    dataPair(key_t k,value_t v):value(v),key(k){};
+    dataPair(){};
+    dataPair(const dataPair &d):value(d.value),key(d.key){};
+};
 template<class key_t,class value_t>class skiplist{
+    friend class SStable;
 public:
     skiplist();
     ~skiplist();
     int getSize();
     int getLevel();
+    std::shared_ptr<dataPair<key_t,value_t>> getFirst();
+    std::shared_ptr<dataPair<key_t,value_t>> getLast();
+    std::shared_ptr<typename skiplist<key_t,value_t>::qNode> getFirstNode();
     bool isEmpty();
+    std::shared_ptr<dataPair<key_t,value_t>> getNext();
     void insert(key_t,value_t); 
     std::shared_ptr<value_t> get(key_t);
     bool remove(key_t);
 private:
-    struct dataPair{
-        value_t value;
-        key_t key;
-        dataPair(key_t k,value_t v):value(v),key(k){};
-        dataPair(){};
-    };
     struct qNode{//built-in quadListNode 
         std::shared_ptr<qNode> above,below,next,prev;
-        dataPair entry;
+        dataPair<key_t,value_t> entry;
         qNode(){};
         qNode(std::shared_ptr<qNode> a,
         std::shared_ptr<qNode>b,
         std::shared_ptr<qNode>n,
         std::shared_ptr<qNode>p,
-        dataPair e):above(a),below(b),next(n),prev(p),entry(e){};
+        dataPair<key_t,value_t> e):above(a),below(b),next(n),prev(p),entry(e){};
     };
     struct qList{
         std::shared_ptr<qNode> head,tail;
@@ -49,7 +55,7 @@ private:
     };
    std::shared_ptr<qList> levelTop,levelBottom;//stores the list pointing to the first node of each level
    std::shared_ptr<qNode> search(key_t);
-   std::shared_ptr<qNode> insertAbove(dataPair,std::shared_ptr<qNode>,std::shared_ptr<qNode> b=nullptr);
+   std::shared_ptr<qNode> insertAbove(dataPair<key_t,value_t>,std::shared_ptr<qNode>,std::shared_ptr<qNode> b=nullptr);
     int size,level;
 };
 template <class key_t, class value_t>
@@ -83,7 +89,7 @@ int skiplist<key_t, value_t>::getLevel()
 template <class key_t, class value_t>
 void skiplist<key_t, value_t>::insert(key_t key, value_t value)
 {
-    dataPair e = dataPair(key, value);
+    dataPair<key_t,value_t> e = dataPair<key_t,value_t>(key, value);
     auto &&p = search(key);
     if (p->entry.key == key)
         while (p->below)
@@ -111,7 +117,7 @@ void skiplist<key_t, value_t>::insert(key_t key, value_t value)
     }
 }
 template <class key_t, class value_t>
-std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_t>::insertAbove(skiplist<key_t, value_t>::dataPair e, std::shared_ptr<skiplist<key_t, value_t>::qNode>p, std::shared_ptr<skiplist<key_t, value_t>::qNode>b)
+std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_t>::insertAbove(dataPair<key_t,value_t> e, std::shared_ptr<skiplist<key_t, value_t>::qNode>p, std::shared_ptr<skiplist<key_t, value_t>::qNode>b)
 {
     //insert a node before p
     std::shared_ptr<qNode> x = std::shared_ptr<qNode>(new qNode(nullptr, b, p->next, p, e));
@@ -164,4 +170,39 @@ std::shared_ptr<typename skiplist<key_t, value_t>::qNode> skiplist<key_t, value_
             return p;
         p = p->prev ? p->below : topList->first();
     }
+}
+template <class key_t,class value_t>
+std::shared_ptr<dataPair<key_t,value_t>> skiplist<key_t,value_t>::getNext(){
+    //returns ordered sequence of elements by time of call 
+    static auto ele=levelBottom->head->next;
+    if(ele==levelBottom->tail)return nullptr;
+    else {
+        auto value=std::make_shared< dataPair<key_t,value_t> >(ele->entry);
+        ele=ele->next;
+        return value;
+    }
+}
+template <class key_t,class value_t>
+std::shared_ptr<dataPair<key_t,value_t>> skiplist<key_t,value_t>::getFirst(){
+    auto ele=levelBottom->head->next;
+    if(ele==levelBottom->tail)return nullptr;
+    else 
+        return std::make_shared< dataPair<key_t,value_t> >(ele->entry);
+        
+}
+template <class key_t,class value_t>
+std::shared_ptr<typename skiplist<key_t,value_t>::qNode> skiplist<key_t,value_t>::getFirstNode(){
+    auto ele=levelBottom->head->next;
+    if(ele==levelBottom->tail)return nullptr;
+    else 
+        return std::make_shared< dataPair<key_t,value_t> >(ele);
+        
+}
+template <class key_t,class value_t>
+std::shared_ptr<dataPair<key_t,value_t>> skiplist<key_t,value_t>::getLast(){
+ auto ele=levelBottom->tail->prev;
+    if(ele==levelBottom->head)return nullptr;
+    else 
+        return std::make_shared< dataPair<key_t,value_t> >(ele->entry);
+        
 }
